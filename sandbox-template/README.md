@@ -20,41 +20,47 @@ rbenv を使っているため、プロジェクトに `.ruby-version` を置け
 ※ システムテスト用のブラウザ(Chromium 等)は含めていません。Ubuntu の chromium は
 snap 依存でコンテナに入れづらいため、必要になった時点で導入方法を検討してください。
 
-## ビルドとレジストリへの push(ホスト側で実行)
+## 利用手順(ホスト側で実行)
 
-チームで共有するため、コンテナレジストリに push して使います。メンバーの環境が
-Apple Silicon / Intel で混在する可能性があるため、マルチアーキテクチャでビルドします。
+チームでの共有は**この Dockerfile まで**とし、ビルドしたイメージはコンテナレジストリに
+push しません。各メンバーが自分のマシンでイメージをビルドし、サンドボックスランタイムに
+取り込んで使います(自分の CPU アーキテクチャ向けにビルドされるため、Apple Silicon /
+Intel の違いも意識する必要がありません)。
 
-```bash
-cd sandbox-template
+### 1. イメージをビルドする
 
-# 例: GitHub Container Registry を使う場合
-docker buildx build \
-  --platform linux/amd64,linux/arm64 \
-  -t ghcr.io/<org>/rails8-sandbox:latest \
-  --push .
-```
-
-自分だけで試す場合はローカルビルドでも使えます(ローカルイメージはそのまま参照可能):
+リポジトリのルートで:
 
 ```bash
-docker build -t rails8-sandbox:local sandbox-template/
+docker build -t rails8-sandbox:1.0 sandbox-template/
 ```
 
-## テンプレートとしての利用(ホスト側で実行)
+### 2. tar にエクスポートしてサンドボックスランタイムに取り込む
 
-`sbx` はテンプレートを `--template` フラグで指定します。
+サンドボックスランタイムはホストの Docker とイメージストアを共有していないため、
+`docker save` でエクスポートした tar ファイルを `sbx template load` で取り込みます。
+
+```bash
+docker save rails8-sandbox:1.0 -o rails8-sandbox.tar
+sbx template load rails8-sandbox.tar
+rm rails8-sandbox.tar
+
+# 取り込まれたことを確認
+sbx template ls
+```
+
+### 3. テンプレートを指定してサンドボックスを作成する
 
 ```bash
 # サンドボックスを作成して Claude Code を起動
-sbx run --template ghcr.io/<org>/rails8-sandbox:latest claude
+sbx run -t rails8-sandbox:1.0 claude
 
-# もしくは作成のみ
-sbx create --template ghcr.io/<org>/rails8-sandbox:latest claude
+# もしくは作成のみ(-t は --template の短縮形)
+sbx create -t rails8-sandbox:1.0 claude
 ```
 
-イメージは初回利用時に pull されローカルにキャッシュされます。2 回目以降は
-キャッシュが再利用されます。
+Dockerfile を更新した場合は、タグを上げて手順 1〜2 を再実行してください。
+不要になったテンプレートは `sbx template rm` で削除できます。
 
 ## サンドボックスのネットワーク許可(重要)
 
