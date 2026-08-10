@@ -1,16 +1,34 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+このファイルは、Claude Code (claude.ai/code) がこのリポジトリで作業する際のガイダンスを提供します。
 
-## Current State
+## ドキュメント方針
 
-This repository is newly created and contains no application code yet — only an MIT LICENSE. Based on its name (`claude-code-task-tool-rails`), it is intended to become a Ruby on Rails application.
+- 本リポジトリのドキュメントは基本的にすべて**日本語**で記述する(この CLAUDE.md も含む)。
 
-## When Code Is Added
+## プロジェクト概要
 
-Once the Rails application is scaffolded, update this file with:
+- **Rails 8** を使って開発する、**ローカルで動かすことを想定したタスクツール**。
+- 現在リポジトリは作成されたばかりで、アプリケーションコードはまだ存在しない(MIT LICENSE のみ)。
 
-- Setup commands (e.g. `bundle install`, database setup)
-- How to run the app, the test suite, and a single test
-- Lint/format commands (e.g. RuboCop)
-- The high-level architecture once it takes shape
+## 開発フロー
+
+1. **pull する**: リモートの更新を反映するため、作業開始前にまず pull する。
+2. **ベースブランチ**: 具体的な指示が無い限りは `main` ブランチをベースとする。
+3. **計画 → GO サイン待ち**: 指示を受け取り、実装方針が決まったら計画を表示して GO サインを待つ。**GO サインが出てから実装を開始する**。
+4. **git worktree で隔離**: 並列実装を可能とするため、実装時は `git worktree` を使って実装場所を隔離する。
+5. **プッシュして PR 作成**: 実装完了後、ブランチをプッシュして Pull Request を作成する。
+
+## ブランチ命名規則
+
+- 新機能開発系: `feature/xxx`
+- 不具合修正系: `bugfix/xxx`
+
+## コードが追加されたら
+
+Rails アプリケーションのスキャフォールド後、以下の情報でこのファイルを更新すること:
+
+- セットアップコマンド(例: `bundle install`、データベースのセットアップ)
+- アプリの起動方法、テストスイートの実行方法、単一テストの実行方法
+- Lint / フォーマットコマンド(例: RuboCop)
+- 形になってきた段階での高レベルアーキテクチャ
