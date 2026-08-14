@@ -9,23 +9,25 @@ ARG RUBY_VERSION=3.4.10
 ARG RAILS_VERSION="~> 8.0"
 
 # --- システムパッケージ(root で実行) ---
-# Ruby のビルドに必要なライブラリと、Rails 8 のデフォルト構成
-# (SQLite3 / Active Storage の画像処理 = libvips)に必要なパッケージ。
+# Ruby のビルドに必要なライブラリと、本プロジェクトの構成
+# (MySQL / Active Storage の画像処理 = libvips)に必要なパッケージ。
+# default-libmysqlclient-dev は mysql2 gem のネイティブビルドに、
+# default-mysql-client は動作確認用の mysql CLI として入れている。
 # rustc は Ruby の YJIT を有効にしてビルドするために必要。
 USER root
 RUN apt-get update && apt-get install -y --no-install-recommends \
       autoconf \
       build-essential \
+      default-libmysqlclient-dev \
+      default-mysql-client \
       libffi-dev \
       libgmp-dev \
       libreadline-dev \
-      libsqlite3-dev \
       libssl-dev \
       libvips \
       libyaml-dev \
       pkg-config \
       rustc \
-      sqlite3 \
       zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
 

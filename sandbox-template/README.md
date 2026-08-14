@@ -11,8 +11,11 @@ Rails 8 の開発に必要なソフトウェアをプリインストールして
 | --- | --- | --- |
 | Ruby | 3.4.10 | rbenv + ruby-build でインストール(YJIT 有効) |
 | Rails | `~> 8.0` の最新 | `gem install rails` 済み |
-| SQLite3 | apt 最新 | Rails 8 のデフォルト DB(`libsqlite3-dev` 含む) |
+| MySQL クライアント | apt 最新 | `default-libmysqlclient-dev`(mysql2 gem のビルド用)と `default-mysql-client`(mysql CLI) |
 | libvips | apt 最新 | Active Storage の画像処理用 |
+
+※ MySQL サーバー本体はイメージに含めていません。リポジトリルートの
+`docker-compose.yml` で `docker compose up -d` して起動します。
 
 rbenv を使っているため、プロジェクトに `.ruby-version` を置けば別バージョンの Ruby も
 `rbenv install <version>` で追加インストールできます。
