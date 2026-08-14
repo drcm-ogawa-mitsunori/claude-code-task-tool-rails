@@ -5,7 +5,8 @@ Rails 8 の開発に必要なソフトウェアをプリインストールして
 
 ## 含まれるもの
 
-ベースイメージ `docker/sandbox-templates:claude-code`(Node.js / npm / Python / git などを含む)に加えて:
+ベースイメージ `docker/sandbox-templates:claude-code-docker`(Node.js / npm / Python / git
+などに加え、microVM 内で動く **Docker Engine** を含む)に加えて:
 
 | ソフトウェア | バージョン | 備考 |
 | --- | --- | --- |
@@ -15,7 +16,9 @@ Rails 8 の開発に必要なソフトウェアをプリインストールして
 | libvips | apt 最新 | Active Storage の画像処理用 |
 
 ※ MySQL サーバー本体はイメージに含めていません。リポジトリルートの
-`docker-compose.yml` で `docker compose up -d` して起動します。
+`docker-compose.yml` で `docker compose up -d` して起動します。ベースイメージに
+Docker Engine が含まれているため、この起動はサンドボックス内だけで完結します
+(ホスト側の Docker は使いません)。
 
 rbenv を使っているため、プロジェクトに `.ruby-version` を置けば別バージョンの Ruby も
 `rbenv install <version>` で追加インストールできます。
@@ -35,7 +38,7 @@ Intel の違いも意識する必要がありません)。
 リポジトリのルートで:
 
 ```bash
-docker build -t rails8-sandbox:1.0 sandbox-template/
+docker build -t rails8-sandbox:1.1 sandbox-template/
 ```
 
 ### 2. tar にエクスポートしてサンドボックスランタイムに取り込む
@@ -44,7 +47,7 @@ docker build -t rails8-sandbox:1.0 sandbox-template/
 `docker save` でエクスポートした tar ファイルを `sbx template load` で取り込みます。
 
 ```bash
-docker save rails8-sandbox:1.0 -o rails8-sandbox.tar
+docker save rails8-sandbox:1.1 -o rails8-sandbox.tar
 sbx template load rails8-sandbox.tar
 rm rails8-sandbox.tar
 
@@ -56,14 +59,31 @@ sbx template ls
 
 ```bash
 # サンドボックスを作成して Claude Code を起動
-sbx run -t rails8-sandbox:1.0 claude
+sbx run -t rails8-sandbox:1.1 claude
 
 # もしくは作成のみ(-t は --template の短縮形)
-sbx create -t rails8-sandbox:1.0 claude
+sbx create -t rails8-sandbox:1.1 claude
 ```
 
 Dockerfile を更新した場合は、タグを上げて手順 1〜2 を再実行してください。
 不要になったテンプレートは `sbx template rm` で削除できます。
+
+### 4. 既存サンドボックスの作り直し(1.0 から移行する場合)
+
+`sbx template ls` の FLAVOR 列でベースイメージの種類が分かります。`claude-code`
+(= 1.0 のイメージ)で作られたサンドボックスには Docker デーモンが存在せず、
+`docker` CLI はあっても `docker compose` が動きません。フレーバーは
+サンドボックス作成時に決まるため、途中で切り替えられません。既存サンドボックスは
+一度削除して作り直してください。
+
+```bash
+sbx rm task-tool
+sbx create --name task-tool -t rails8-sandbox:1.1 --clone --no-share-skills claude .
+sbx run --name task-tool -- update
+```
+
+作り直すと GitHub トークンなどのサンドボックス単位のシークレットも消えるため、
+`sbx secret set` をやり直す必要があります。
 
 ## サンドボックスのネットワーク許可(重要)
 
@@ -82,8 +102,17 @@ sbx policy allow network cache.ruby-lang.org
 ※ `rubygems.org` 本体はデフォルトで許可されていますが、bundler が利用する
 `index.rubygems.org` は別ドメインのため個別の許可が必要です。
 
+サンドボックス内で `docker compose up -d` した際に `mysql:8.4` の pull が
+HTTP 403(`Blocked by network policy`)になる場合は、Docker Hub 側のドメインも
+許可してください。
+
+```bash
+sbx policy allow network registry-1.docker.io,auth.docker.io,production.cloudflare.docker.com
+```
+
 ## バージョン更新
 
 Ruby / Rails のバージョンは `Dockerfile` 冒頭の `ARG RUBY_VERSION` /
-`ARG RAILS_VERSION` で固定しています。更新する場合はここを書き換えて
-再ビルド・再 push してください。
+`ARG RAILS_VERSION` で固定しています。更新する場合はここを書き換えて、
+イメージのタグを上げた上で「利用手順」の 1〜2 を再実行してください
+(レジストリへの push は行いません)。
