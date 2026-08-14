@@ -2,7 +2,11 @@
 # Docker Sandboxes (sbx) 用カスタムテンプレート
 # Rails 8 の開発に必要なソフトウェア一式をプリインストールしたイメージ。
 # ビルド・登録手順は同ディレクトリの README.md を参照。
-FROM docker/sandbox-templates:claude-code
+#
+# ベースは `claude-code` ではなく `claude-code-docker` を使う。
+# こちらは microVM 内に Docker Engine を含むため、サンドボックス内で
+# `docker compose up -d`(開発用 MySQL の起動)がサンドボックス内だけで完結する。
+FROM docker/sandbox-templates:claude-code-docker
 
 # バージョンを上げる場合はここを変更する
 ARG RUBY_VERSION=3.4.10
