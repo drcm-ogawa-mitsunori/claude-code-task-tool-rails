@@ -10,7 +10,9 @@
 
 - **Rails 8** を使って開発する、**ローカルで動かすことを想定したタスクツール**。
 - DB には **MySQL** を使う(リポジトリルートの `docker-compose.yml` で `docker compose up -d` して起動する)。
-- 現在リポジトリは作成されたばかりで、アプリケーションコードはまだ存在しない(MIT LICENSE のみ)。
+- ビューも Rails が担保する(API モードではなく、Hotwire (Turbo / Stimulus) + importmap + Propshaft の Rails 8 標準構成)。
+- キャッシュは **Solid Cache**、ジョブキューは **Solid Queue** を使う(いずれも MySQL 上の専用データベースを使用)。
+- ローカル利用前提のため、Docker デプロイ関連(Kamal / Thruster / Dockerfile)は導入していない。
 
 ## 開発フロー
 
@@ -58,11 +60,37 @@
 
 - PR 作成時、どの issue に対応したものかを PR の説明文に記述する(例: `対応 issue: #1`)。
 
-## コードが追加されたら
+## セットアップ
 
-Rails アプリケーションのスキャフォールド後、以下の情報でこのファイルを更新すること:
+```bash
+docker compose up -d   # MySQL 8.4 を起動(リポジトリルート)
+bundle install
+bin/rails db:prepare   # 各データベースの作成とスキーマ読み込み
+```
 
-- セットアップコマンド(例: `bundle install`、データベースのセットアップ)
-- アプリの起動方法、テストスイートの実行方法、単一テストの実行方法
-- Lint / フォーマットコマンド(例: RuboCop)
-- 形になってきた段階での高レベルアーキテクチャ
+## よく使うコマンド
+
+| 目的 | コマンド |
+| --- | --- |
+| アプリの起動 | `bin/dev`(http://localhost:3000) |
+| Solid Queue のワーカー起動 | `bin/jobs` |
+| テストスイート実行 | `bin/rails test` |
+| 単一テストファイル実行 | `bin/rails test test/integration/home_page_test.rb` |
+| 単一テストケース実行 | `bin/rails test test/integration/home_page_test.rb:4`(行番号指定) |
+| システムテスト実行 | `bin/rails test:system`(実行には Chrome が必要。現時点でテストは未作成) |
+| Lint(RuboCop / rails-omakase) | `bin/rubocop`(自動修正は `bin/rubocop -a`) |
+| セキュリティスキャン | `bin/brakeman`、`bin/bundler-audit`、`bin/importmap audit` |
+| CI 相当を一括実行 | `bin/ci` |
+
+## アーキテクチャ
+
+- **Rails 8.1 / Ruby 3.4**、フロントエンドは importmap + Hotwire、アセットは Propshaft。
+- **データベース(MySQL)は用途ごとに分割**している(`config/database.yml`)。
+  - `primary`: アプリ本体(`task_tool_development` など)
+  - `cache`: Solid Cache 用(`db/cache_schema.rb`)
+  - `queue`: Solid Queue 用(`db/queue_schema.rb`)
+  - development / test / production のすべてで Solid Cache・Solid Queue を有効にしている
+    (`config/environments/*.rb` の `cache_store` / `active_job.queue_adapter`)。
+- 接続情報は環境変数 `DB_HOST` / `DB_PORT` / `DB_USERNAME` / `DB_PASSWORD` で上書きできる。
+  既定値はリポジトリルートの `docker-compose.yml` に合わせてある。
+- ルート(`/`)は `HomeController#index`。ヘルスチェックは `/up`。
