@@ -1,0 +1,22 @@
+# 開発用 MySQL を起動するための docker compose 定義。
+# ローカル・sandbox 内のどちらでも `docker compose up -d` で起動できる。
+# 接続情報(ローカル開発用):
+#   host: 127.0.0.1 / port: 3306 / user: root / password: password
+services:
+  db:
+    image: mysql:8.4
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: task_tool_development
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-ppassword"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mysql-data:
