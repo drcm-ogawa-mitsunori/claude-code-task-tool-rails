@@ -3,5 +3,10 @@
     "commit": "",
     "pr": "",
     "sessionUrl": false
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "ruby \"${CLAUDE_PROJECT_DIR:-.}/.claude/statusline.rb\"",
+    "padding": 0
   }
 }
