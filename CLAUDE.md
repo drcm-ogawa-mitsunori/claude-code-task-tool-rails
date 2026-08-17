@@ -60,6 +60,14 @@
 
 - PR 作成時、どの issue に対応したものかを PR の説明文に記述する(例: `対応 issue: #1`)。
 
+## sandbox 環境での git / gh アクセス
+
+sandbox 環境で動作している場合、GitHub へのアクセスは必ず **HTTPS** で行う。
+
+- sandbox 環境は `sbx secret set github` で渡された GitHub アクセストークンを **HTTPS 通信にのみ**注入するため、SSH では認証できない。
+- git リモート URL が SSH 形式(`git@github.com:owner/repo.git` や `ssh://git@github.com/owner/repo.git`)の場合は、HTTPS 形式(`https://github.com/owner/repo.git`)に読み替えて、最初から HTTPS でアクセスする(SSH で失敗してから HTTPS でリトライする、という手順を踏まない)。
+  - 例: `git push git@github.com:owner/repo.git` ではなく `git push https://github.com/owner/repo.git` を使う。必要に応じて `git remote set-url origin https://github.com/owner/repo.git` でリモート URL 自体を HTTPS に変更してよい。
+
 ## セットアップ
 
 ```bash
