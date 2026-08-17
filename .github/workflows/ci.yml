@@ -28,6 +28,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # bin/importmap が Rails を起動する際に ruby-vips が読み込まれるため libvips が必要
+      - name: Install packages
+        run: sudo apt-get update && sudo apt-get install --no-install-recommends -y libvips
+
       - name: Checkout code
         uses: actions/checkout@v6
 
