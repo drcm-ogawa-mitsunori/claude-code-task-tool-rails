@@ -3,5 +3,10 @@
     "commit": "",
     "pr": "",
     "sessionUrl": false
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "ruby \"${CLAUDE_PROJECT_DIR:-.}/.claude/statusline.rb\" 2>/dev/null || echo '(statusline: スクリプトの実行に失敗しました)'",
+    "padding": 0
   }
 }
