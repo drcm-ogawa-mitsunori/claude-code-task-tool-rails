@@ -32,7 +32,7 @@ gem "solid_cable"
 gem "bootsnap", require: false
 
 # Use Active Storage variants [https://guides.rubyonrails.org/active_storage_overview.html#transforming-images]
-gem "image_processing", "~> 2.0"
+gem "image_processing", "~> 2.2"
 # image_processing 2.0 以降は vips バックエンドの依存が明示追加制のため必要 [https://github.com/janko/image_processing]
 gem "ruby-vips", "~> 2.2"
 
